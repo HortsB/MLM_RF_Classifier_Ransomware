@@ -67,15 +67,7 @@ class RepChecker():
         self.hsecret = hsecret.decode('utf-8')
         self.hbase = 'https://www.hybrid-analysis.com/api/scan/'
 
-    def get_virus_total(self, md5):
-        params = {'apikey': self.vtapi, 'resource': md5}
-        data = urllib.parse.urlencode(params).encode("utf-8")
-        r = requests.get(self.vtbase, params=params)
-        return r.json()
 
-    def get_threatcrowd(self, md5):
-        r = requests.get(self.tcbase)
-        return r.json()
 
     def get_hybrid(self, md5):
         headers = {'User-Agent': 'Falcon'}
@@ -104,77 +96,7 @@ def parse(file, features, display, virustotal, threatcrowd, hybridanalysis):
         print("\tSize Of Stack Reserve: ", features[10])
         print("\tDll Characteristics: ", features[11])
 
-    if virustotal:
-        print("[+] Running Virus Total reputation check...\n")
-        data = get_data.get_virus_total(md5_hash)
 
-        if data['response_code'] == 0:
-            print("[-] The file %s with MD5 hash %s was not found in Virus Total" % (os.path.basename(file), md5_hash))
-        else:
-            print("\tResults for file %s with MD5 %s:" % (os.path.basename(file), md5_hash))
-            if data['positives'] == 0:
-                print("\n\tDetected by: ", colored(str(data['positives']), 'green'), '/', data['total'], '\n')
-            elif data['positives'] > 0 and data['positives'] <= 25:
-                print("\n\tDetected by: ", colored(str(data['positives']), 'yellow'), '/', data['total'], '\n')
-            else:
-                print("\n\tDetected by: ", colored(str(data['positives']), 'red'), '/', data['total'], '\n')
-
-            av_firms = []
-            malware_names = []
-            fmt = '%-4s%-23s%s'
-
-            if data['positives'] > 0:
-                for scan in data['scans']:
-                    if data['scans'][scan]['detected'] == True:
-                        av_firms.append(scan)
-                        malware_names.append(data['scans'][scan]['result'])
-
-                print('\t', fmt % ('', 'AV Firm', 'Malware Name'))
-                for i, (l1, l2) in enumerate(zip(av_firms, malware_names)):
-                    print('\t', fmt % (i, l1, l2))
-                if data['permalink']:
-                    print("\n\tVirus Total Report: ", data['permalink'], '\n')
-
-            if data['positives'] == 0:
-                print(
-                    colored('[*] ', 'green') + "Virus Total has found the file %s " % os.path.basename(file) + colored(
-                        "not malicious.", 'green'))
-                if data['permalink']:
-                    print("\n\tVirus Total Report: ", data['permalink'], '\n')
-            elif data['positives'] > 0 and data['positives'] <= 25:
-                print(colored('[*] ', 'red') + "Virus Total has found the file %s " % os.path.basename(file) + colored(
-                    "has malicious properties.\n", 'yellow'))
-            else:
-                print(colored('[*] ', 'red') + "Virus Total has found the file %s " % os.path.basename(file) + colored(
-                    "is malicious.\n", 'red'))
-
-    if threatcrowd:
-        fmt = '%-4s%-23s'
-        print("[+] Retrieving information from Threat Crowd...\n")
-        data = get_data.get_threatcrowd(md5_hash)
-
-        if data['response_code'] == "0":
-            print("[-] The file %s with MD5 hash %s was not found in Threat Crowd.\n" % (
-            os.path.basename(file), md5_hash))
-        else:
-            print("\n\tSHA1: ", data['sha1'])
-            if data['ips']:
-                print('\n\t', fmt % ('', 'IPs'))
-                for i, ip in enumerate((data['ips'])):
-                    print('\t', fmt % (i + 1, ip))
-
-            if data['domains']:
-                print('\n\t', fmt % ('', 'Domains'))
-                for i, domain in enumerate((data['domains'])):
-                    print('\t', fmt % (i + 1, domain))
-
-            if data['scans']:
-                if data['scans'][1:]:
-                    print('\n\t', fmt % ('', 'Antivirus'))
-                    for i, scan in enumerate(data['scans'][1:]):
-                        print('\t', fmt % (i + 1, scan))
-
-            print('\n\tThreat Crowd Report: ', data['permalink'], '\n')
 
     if hybridanalysis:
         data = get_data.get_hybrid(md5_hash)
@@ -254,10 +176,6 @@ def main():
     parser.add_argument('file', nargs='?', help="File To Parse", )
     parser.add_argument('-d', '--displayfeatures', action='store_true', dest='display',
                         help='Display extracted file features.')
-    parser.add_argument('-v', "--virustotal", action='store_true', dest='virustotal',
-                        help="Run with Virus Total check.")
-    parser.add_argument('-t', '--threatcrowd', action='store_true', dest='threatcrowd',
-                        help="Run with Threat Crowd check.")
     parser.add_argument('-z', '--hybridanalysis', action='store_true', dest='hybridanalysis',
                         help="Run Hybrid Analysis check.")
     args = parser.parse_args()
@@ -288,7 +206,6 @@ def main():
 
     if args.display or args.virustotal or args.threatcrowd or args.hybridanalysis:
         parse(args.file, feature_list, args.display, args.virustotal, args.threatcrowd, args.hybridanalysis)
-
 
 if __name__ == '__main__':
     main()
