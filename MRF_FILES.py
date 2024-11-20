@@ -19,8 +19,8 @@ from termcolor import colored, cprint
 import colorama
 import base64
 import webbrowser
-
-
+from datetime import datetime
+starttime = datetime.now()
 # Class to extract features from input file.
 class ExtractFeatures():
 
@@ -170,6 +170,7 @@ def parse(file, features, display, virustotal, threatcrowd, hybridanalysis):
             print("\tBitcoin Addresses: Yes\n")
         else:
             print("\tBitcoin Addresses: No\n")
+
 
     # If Virus Total option is selected, file information from Virus
     # total is returned.
@@ -344,7 +345,7 @@ def parse(file, features, display, virustotal, threatcrowd, hybridanalysis):
             else:
                 print(colored('\n[*] ', 'green') + "Hybrid Analysis has found that the file %s " % os.path.basename(
                     file) + colored("is not malicious.\n", 'green'))
-
+    print("Tiempo de entrenamiento: ", datetime.now() - starttime)
 
 def main():
     parser = argparse.ArgumentParser(epilog="MLRD uses machine learning to detect ransomware\n\
@@ -404,7 +405,7 @@ def main():
     else:
         print(colored('[*] ', 'red') + "The file %s has been identified as " % os.path.basename(sys.argv[1]) + colored(
             'malicious.\n', 'red'))
-
+    print("Tiempo de entrenamiento: ", datetime.now() - starttime)
     # Passes command line arguments to parse function for parsing.
     if args.display or args.virustotal or args.threatcrowd or args.hybridanalysis:
         parse(args.file, feature_list, args.display, args.virustotal, args.threatcrowd, args.hybridanalysis)
