@@ -1,3 +1,5 @@
+import timeit
+
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
@@ -6,7 +8,8 @@ from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, r
 import joblib
 from sklearn.model_selection import train_test_split
 import pickle
-
+from datetime import datetime
+start_time = datetime.now()
 def main():
     df=pd.read_csv('data_ransomware.csv',sep=',')
     #PREPROCESAMIENTO
@@ -45,10 +48,10 @@ def main():
         features.append(df.columns[feature])
 
     try:
-        print("\n[+] Saving algorithm and feature list in classifier directory...")
+        print("\n[+] Se guardo con exito el modelo entrenado.")
         joblib.dump(rF, 'classifier/classifier.pkl')
         open('classifier/features.pkl', 'wb').write(pickle.dumps(features))
-        print("\n[*] Saved.")
+        print("Tiempo de entrenamiento: ",datetime.now()-start_time)
     except:
         print('\n[-] Error: Algorithm and feature list not saved correctly.\n')
 
